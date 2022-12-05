@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\StoreUserAnswerRequest;
 use App\Http\Resources\UserAnswer\UserAnswerInfoResource;
 use App\Http\Services\UserAnswer\IUserAnswerService;
 use Exception;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class UserAnswerController extends Controller
 {
@@ -43,15 +45,16 @@ class UserAnswerController extends Controller
      *
      * @param Request $request
      * @return mixed
+     * @throws ValidationException
      */
-    public function store(Request $request)
+    public function store(StoreUserAnswerRequest $request)
     {
+        $request = $request->validated();
         try {
-            $attribute = $request->all();
-            if (count($attribute['question']) != count($attribute['answer'])) {
-                return response()->json(['success' => false, 'message' => 'Нужно ответить на все тесты', 'data' => $this->userAnswerService->show($data->id)], 500);
+            if (count($request['question']) != count($request['answer'])) {
+                return response()->json(['success' => false, 'message' => 'Нужно ответить на все тесты'], 500);
             }
-            if ($data = $this->userAnswerService->store($request->all())) {
+            if ($data = $this->userAnswerService->store($request)) {
                 return response()->json(['success' => true, 'message' => 'Успешно сохранено!', 'data' => $this->userAnswerService->show($data->id)], 200);
             }
         }catch (Exception $exception) {
@@ -65,7 +68,7 @@ class UserAnswerController extends Controller
      * @param $id
      * @return mixed
      */
-    public function show($id)
+    public function show(int $id)
     {
         try {
             return $this->userAnswerService->show($id);
@@ -96,7 +99,7 @@ class UserAnswerController extends Controller
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
         try {
             if ($this->userAnswerService->destroy($id)) {

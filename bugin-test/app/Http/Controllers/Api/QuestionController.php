@@ -59,7 +59,7 @@ class QuestionController extends Controller
      * @param $id
      * @return mixed
      */
-    public function show($id)
+    public function show(int $id)
     {
         try {
             return $this->questionService->show($id);
